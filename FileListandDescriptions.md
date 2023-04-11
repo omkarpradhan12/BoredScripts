@@ -13,3 +13,26 @@
 
 ### Basic Calc
 > a basic calculator made with pysimplegui
+
+### SCD Demo
+> a python program utliizing classes, dictonaries and pysimplegui to demonstrate Slowly Changing Dimensions
+
+### Basic Notepad
+> an extremely basic notepad made using pysimplegui because i was bored
+
+### csv_editor
+> a buggy csv editor that allows adding new entries to an already existing csv with pre specified headers
+
+### Expense
+> an expense tracker made in python with pysimplegui some features:
+  - Create a csv with headers if not already exist
+  - Add new entries and sort them by date
+  - sum of all transactions listed on screen
+  - filtering for category, month
+  - filter with month and category at the same time
+  - save before exit 
+ > possible future updates
+  - edit previous entries
+  - add categories
+  - better gui
+  - visualisations for graphs
