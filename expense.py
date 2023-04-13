@@ -9,6 +9,26 @@ import seaborn as sns
 
 
 
+my_custom_style = {
+    "axes.facecolor": "#394a6d",    # Background color of the plotting area
+    "axes.edgecolor": "#52de97",    # Color of the edges of the plotting area
+    "axes.labelcolor": "#e6e6e6",   # Color of axis labels
+    "text.color": "#e6e6e6",        # Color of text
+    "xtick.color": "#e6e6e6",       # Color of x-axis ticks
+    "ytick.color": "#e6e6e6",       # Color of y-axis ticks
+    "grid.color": "#52de97",         # Color of grid lines
+    "grid.linewidth": 0.5,           # Width of grid lines
+    "figure.facecolor": "#394a6d",  # Background color of the entire figure
+    "figure.edgecolor": "#52de97"   # Color of the edges of the figure
+}
+
+# Set the custom style using Seaborn's set_style() function
+sns.set_style(my_custom_style)
+
+my_custom_palette = ["#3795BD","#FFD369","#03C988","#C02739","#FF4D00"]
+
+
+
 def resource_path(relative_path):
     try:
         base_path = sys._MEIPASS
@@ -70,7 +90,7 @@ def draw_figure(canvas, figure):
 
 def popup_show_graphs(fig):
     layout = [
-        [psg.Canvas(key='figcanvas')]
+        [psg.Canvas(key='figcanvas',background_color='black')]
     ]
     window = psg.Window("Expense Tracker",layout,resizable=True,finalize=True)
     draw_figure(window['figcanvas'].TKCanvas, fig)
@@ -213,26 +233,28 @@ while True:
             categoryexpense,daywise = monthdata(mindex,Headers,Rows)
             
             if len(categoryexpense)>0:
-                a4_dims = (30.7, 10.27)
-                fig, axs = plt.subplots(ncols=3,figsize=a4_dims)
                 
-                catex = sns.barplot(categoryexpense,x='Category',y='Amount',ax=axs[0])
-                catex.axes.set_title("Category wise Amount",fontsize=40)
-                catex.set_xlabel("Category",fontsize=30)
-                catex.set_ylabel("Amount",fontsize=20)
+                fig, ax = plt.subplots(ncols=2,figsize=(30,10))
+                
+                catex = sns.barplot(categoryexpense,x='Category',y='Amount',ax=ax[0],palette=my_custom_palette)
+                catex.axes.set_title("Category wise Amount")
+                catex.set_xlabel("Category")
+                catex.set_ylabel("Amount")
                 catex.bar_label(catex.containers[0])
-                catex.tick_params(labelsize=30)
+                catex.tick_params()
+                
 
-                dayexp = sns.barplot(daywise,x='Date',y='Amount',ax=axs[1])
-                dayexp.axes.set_title("Date Wise Amount",fontsize=40)
-                dayexp.set_xlabel("Date",fontsize=12)
-                dayexp.set_ylabel("Amount",fontsize=20)
+                dayexp = sns.barplot(daywise,x='Date',y='Amount',ax=ax[1])
+                dayexp.axes.set_title("Date Wise Amount")
+                dayexp.set_xlabel("Date")
+                dayexp.set_ylabel("Amount")
                 dayexp.set_xticklabels(labels=daywise['Date'].to_list(),rotation=90)
-                dayexp.bar_label(dayexp.containers[0],fontsize=12)
+                dayexp.bar_label(dayexp.containers[0],fontsize=18,rotation=90)
                 dayexp.tick_params(labelsize=10)
                 
-                piplt = axs[2].pie(categoryexpense['Amount'],labels=categoryexpense['Category'],explode=(0, 0, 0,0, 0.1),textprops={'fontsize': 28})  
-                axs[2].set_title("Category Pie Chart",fontsize=40)
+                fig.suptitle('Basic Dashboard',fontsize=50)
+                
+                fig.set_animated()
                 
                 popup_show_graphs(fig)
 
