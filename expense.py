@@ -1,6 +1,13 @@
 import PySimpleGUI as psg
 import sys
 import os
+import pandas as pd
+import matplotlib.pyplot as plt
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+import seaborn as sns
+
+
+
 
 def resource_path(relative_path):
     try:
@@ -22,6 +29,11 @@ Headers = data[0].split(",")
 Rows = [row.split(',') for row in data[1::] if len(row)>0]
 
 total = sum([float(r[3]) for r in Rows])
+
+def monthdata(month,Headers,Rows):
+    rows = [[x[0],x[1],x[2],float(x[3])] for x in Rows if int(x[0].split('-')[1])==month]
+    new_df = pd.DataFrame(rows,columns=Headers)    
+    return new_df.groupby('Category',as_index =False).sum(numeric_only=True),new_df.groupby('Date',as_index =False).sum(numeric_only=True)
 
 def sort_help(dt):
     date = dt[0].split("-")
@@ -49,6 +61,24 @@ def popup_add_expense():
     window.close()
     return [values['Date'],values['Reason'],values['Category'],values['Amount']] if event == 'Add' else None
 
+
+def draw_figure(canvas, figure):
+    figure_canvas_agg = FigureCanvasTkAgg(figure, canvas)
+    figure_canvas_agg.draw()
+    figure_canvas_agg.get_tk_widget().pack(side='top', fill='both', expand=1)
+    return figure_canvas_agg
+
+def popup_show_graphs(fig):
+    layout = [
+        [psg.Canvas(key='figcanvas')]
+    ]
+    window = psg.Window("Expense Tracker",layout,resizable=True,finalize=True)
+    draw_figure(window['figcanvas'].TKCanvas, fig)
+    block_focus(window)
+    event, values = window.read()
+    window.close()
+
+
 psg.set_options(font=('Consolas', 16))
 
 psg.theme("DarkTeal2")
@@ -73,7 +103,7 @@ layout = [
           [psg.Button("Filter by Month and Category",key="filmthcat",size=(150,1))],
           [read_table],
           [psg.Text("Total Amount : ",font="roboto 20"),psg.InputText(str(round(total,2)),key='total',disabled=True,font="Roboto 20",size=(100,1))],
-          [psg.Button("Add Expense ➕ ",key="Add"),psg.Text(" ",size=(90,1)),psg.Button("Save File 💾",key="Save")]
+          [psg.Button("Add Expense ➕ ",key="Add"),psg.Button("Show Graph for Month",size=(90,1),key="show"),psg.Button("Save File 💾",key="Save")]
          ]
 
 
@@ -173,6 +203,44 @@ while True:
         f.write("\n".join(s))
         f.close()
         psg.popup("Saved Succesfully")
+    
+    if event=="show":
+        if values['Month']!="All":
+            
+            mindex = months.index(values["Month"])
+
+
+            categoryexpense,daywise = monthdata(mindex,Headers,Rows)
+            
+            if len(categoryexpense)>0:
+                a4_dims = (30.7, 10.27)
+                fig, axs = plt.subplots(ncols=3,figsize=a4_dims)
+                
+                catex = sns.barplot(categoryexpense,x='Category',y='Amount',ax=axs[0])
+                catex.axes.set_title("Category wise Amount",fontsize=40)
+                catex.set_xlabel("Category",fontsize=30)
+                catex.set_ylabel("Amount",fontsize=20)
+                catex.bar_label(catex.containers[0])
+                catex.tick_params(labelsize=30)
+
+                dayexp = sns.barplot(daywise,x='Date',y='Amount',ax=axs[1])
+                dayexp.axes.set_title("Date Wise Amount",fontsize=40)
+                dayexp.set_xlabel("Date",fontsize=12)
+                dayexp.set_ylabel("Amount",fontsize=20)
+                dayexp.set_xticklabels(labels=daywise['Date'].to_list(),rotation=90)
+                dayexp.bar_label(dayexp.containers[0],fontsize=12)
+                dayexp.tick_params(labelsize=10)
+                
+                piplt = axs[2].pie(categoryexpense['Amount'],labels=categoryexpense['Category'],explode=(0, 0, 0,0, 0.1),textprops={'fontsize': 28})  
+                axs[2].set_title("Category Pie Chart",fontsize=40)
+                
+                popup_show_graphs(fig)
+
+            else:
+                psg.popup("No Records Found")
+        else:
+            psg.popup("Select a month")
+        
 
 
 
